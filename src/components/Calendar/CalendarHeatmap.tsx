@@ -14,6 +14,7 @@ import {
   isAfter,
 } from "date-fns";
 import { scoreToColor, EMPTY_COLOR } from "@/lib/utils/colorScale";
+import { MONTHLY_CLIMATE } from "@/lib/constants";
 import type { DateRange, YearScoreData } from "@/lib/types";
 import HeatmapTooltip from "./HeatmapTooltip";
 
@@ -157,13 +158,13 @@ export default function CalendarHeatmap({
     const maxCol = cellList.length > 0 ? cellList[cellList.length - 1].col : 0;
 
     // Month labels: find the first Monday of each month
-    const labels: { col: number; label: string }[] = [];
+    const labels: { col: number; label: string; month: number }[] = [];
     const seenMonths = new Set<number>();
     for (const cell of cellList) {
-      const m = getMonth(cell.date);
+      const m = getMonth(cell.date); // 0-indexed
       if (!seenMonths.has(m) && cell.row === 0) {
         seenMonths.add(m);
-        labels.push({ col: cell.col, label: format(cell.date, "MMM") });
+        labels.push({ col: cell.col, label: format(cell.date, "MMM"), month: m + 1 });
       }
     }
 
@@ -247,7 +248,7 @@ export default function CalendarHeatmap({
             className="flex flex-col shrink-0"
             style={{
               width: DAY_LABEL_WIDTH,
-              paddingTop: cellSize + CELL_GAP + 4, // offset for month labels row
+              paddingTop: cellSize + CELL_GAP + 20, // offset for month labels + temps row
             }}
           >
             {DAY_LABELS.map((label, i) => (
@@ -263,17 +264,27 @@ export default function CalendarHeatmap({
 
           {/* Grid area */}
           <div className="flex-1">
-            {/* Month labels row */}
-            <div className="relative" style={{ height: cellSize + CELL_GAP + 4 }}>
-              {monthLabels.map(({ col, label }) => (
-                <span
-                  key={label}
-                  className="absolute text-xs text-slate-500 dark:text-slate-400"
-                  style={{ left: col * (cellSize + CELL_GAP) }}
-                >
-                  {label}
-                </span>
-              ))}
+            {/* Month labels row (month name + temp) */}
+            <div className="relative" style={{ height: cellSize + CELL_GAP + 20 }}>
+              {monthLabels.map(({ col, label, month }) => {
+                const climate = MONTHLY_CLIMATE[month];
+                return (
+                  <div
+                    key={label}
+                    className="absolute flex flex-col"
+                    style={{ left: col * (cellSize + CELL_GAP) }}
+                  >
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      {label}
+                    </span>
+                    {climate && (
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                        {climate.highF}°/{climate.lowF}°
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Cell grid (positioned absolutely within a relative container) */}

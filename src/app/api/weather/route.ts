@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import type { DailyForecast } from "@/lib/types";
+import { MONTHLY_CLIMATE } from "@/lib/constants";
 
 const DAY_NAMES = [
   "Sunday",
@@ -14,25 +15,6 @@ const DAY_NAMES = [
   "Friday",
   "Saturday",
 ];
-
-// Seasonal weather patterns for Yosemite (approximate monthly averages)
-const SEASONAL_WEATHER: Record<
-  number,
-  { highBase: number; lowBase: number; conditions: string[]; precipBase: number }
-> = {
-  1: { highBase: 48, lowBase: 26, conditions: ["Snow", "Cloudy", "Partly Cloudy", "Rain"], precipBase: 45 },
-  2: { highBase: 52, lowBase: 28, conditions: ["Rain", "Cloudy", "Partly Cloudy", "Snow"], precipBase: 40 },
-  3: { highBase: 56, lowBase: 30, conditions: ["Partly Cloudy", "Rain", "Sunny", "Cloudy"], precipBase: 35 },
-  4: { highBase: 63, lowBase: 35, conditions: ["Sunny", "Partly Cloudy", "Rain", "Cloudy"], precipBase: 25 },
-  5: { highBase: 72, lowBase: 42, conditions: ["Sunny", "Partly Cloudy", "Clear", "Sunny"], precipBase: 15 },
-  6: { highBase: 82, lowBase: 50, conditions: ["Sunny", "Clear", "Sunny", "Partly Cloudy"], precipBase: 5 },
-  7: { highBase: 90, lowBase: 56, conditions: ["Sunny", "Clear", "Sunny", "Clear"], precipBase: 3 },
-  8: { highBase: 88, lowBase: 55, conditions: ["Sunny", "Clear", "Sunny", "Partly Cloudy"], precipBase: 3 },
-  9: { highBase: 82, lowBase: 48, conditions: ["Sunny", "Clear", "Partly Cloudy", "Sunny"], precipBase: 5 },
-  10: { highBase: 70, lowBase: 38, conditions: ["Partly Cloudy", "Sunny", "Cloudy", "Rain"], precipBase: 20 },
-  11: { highBase: 56, lowBase: 30, conditions: ["Cloudy", "Rain", "Partly Cloudy", "Snow"], precipBase: 35 },
-  12: { highBase: 48, lowBase: 26, conditions: ["Snow", "Cloudy", "Rain", "Partly Cloudy"], precipBase: 45 },
-};
 
 const CONDITION_ICONS: Record<string, string> = {
   Sunny: "01d",
@@ -56,21 +38,21 @@ function generateFallbackWeather(startDate: string): DailyForecast[] {
     date.setDate(date.getDate() + i);
 
     const month = date.getMonth() + 1;
-    const seasonal = SEASONAL_WEATHER[month] ?? SEASONAL_WEATHER[6];
+    const climate = MONTHLY_CLIMATE[month] ?? MONTHLY_CLIMATE[6];
 
     // Deterministic pseudo-random variance based on date
     const dayOfMonth = date.getDate();
     const seed = (dayOfMonth * 13 + month * 7 + i * 3) % 20;
     const tempVariance = seed - 10; // -10 to +9
 
-    const conditionIndex = (dayOfMonth + i) % seasonal.conditions.length;
-    const condition = seasonal.conditions[conditionIndex];
+    const conditionIndex = (dayOfMonth + i) % climate.conditions.length;
+    const condition = climate.conditions[conditionIndex];
 
-    const highTemp = Math.round(seasonal.highBase + tempVariance * 0.5);
-    const lowTemp = Math.round(seasonal.lowBase + tempVariance * 0.3);
+    const highTemp = Math.round(climate.highF + tempVariance * 0.5);
+    const lowTemp = Math.round(climate.lowF + tempVariance * 0.3);
     const precipChance = Math.max(
       0,
-      Math.min(100, Math.round(seasonal.precipBase + tempVariance * 2))
+      Math.min(100, Math.round(climate.precipChance + tempVariance * 2))
     );
 
     forecasts.push({

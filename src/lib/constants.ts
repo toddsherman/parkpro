@@ -216,6 +216,25 @@ export const DAY_OF_WEEK_MULTIPLIER: Record<number, number> = {
   6: 1.4, // Saturday
 };
 
+// Monthly climate averages for Yosemite (approximate historic data)
+export const MONTHLY_CLIMATE: Record<
+  number,
+  { highF: number; lowF: number; conditions: string[]; precipChance: number }
+> = {
+  1: { highF: 48, lowF: 26, conditions: ["Snow", "Cloudy", "Partly Cloudy", "Rain"], precipChance: 45 },
+  2: { highF: 52, lowF: 28, conditions: ["Rain", "Cloudy", "Partly Cloudy", "Snow"], precipChance: 40 },
+  3: { highF: 56, lowF: 30, conditions: ["Partly Cloudy", "Rain", "Sunny", "Cloudy"], precipChance: 35 },
+  4: { highF: 63, lowF: 35, conditions: ["Sunny", "Partly Cloudy", "Rain", "Cloudy"], precipChance: 25 },
+  5: { highF: 72, lowF: 42, conditions: ["Sunny", "Partly Cloudy", "Clear", "Sunny"], precipChance: 15 },
+  6: { highF: 82, lowF: 50, conditions: ["Sunny", "Clear", "Sunny", "Partly Cloudy"], precipChance: 5 },
+  7: { highF: 90, lowF: 56, conditions: ["Sunny", "Clear", "Sunny", "Clear"], precipChance: 3 },
+  8: { highF: 88, lowF: 55, conditions: ["Sunny", "Clear", "Sunny", "Partly Cloudy"], precipChance: 3 },
+  9: { highF: 82, lowF: 48, conditions: ["Sunny", "Clear", "Partly Cloudy", "Sunny"], precipChance: 5 },
+  10: { highF: 70, lowF: 38, conditions: ["Partly Cloudy", "Sunny", "Cloudy", "Rain"], precipChance: 20 },
+  11: { highF: 56, lowF: 30, conditions: ["Cloudy", "Rain", "Partly Cloudy", "Snow"], precipChance: 35 },
+  12: { highF: 48, lowF: 26, conditions: ["Snow", "Cloudy", "Rain", "Partly Cloudy"], precipChance: 45 },
+};
+
 // Zone-specific busyness multipliers (some areas attract more visitors)
 export const ZONE_POPULARITY: Record<string, number> = {
   "yosemite-valley": 1.5,

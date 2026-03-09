@@ -1,8 +1,9 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
+import { format, parseISO, getMonth } from "date-fns";
 import { scoreToCrowdLevel } from "@/lib/utils/scoring";
-import { CROWD_COLORS, CROWD_LABELS } from "@/lib/constants";
+import { CROWD_COLORS, CROWD_LABELS, MONTHLY_CLIMATE } from "@/lib/constants";
+import { Thermometer } from "lucide-react";
 
 interface HeatmapTooltipProps {
   date: string;
@@ -19,6 +20,10 @@ export default function HeatmapTooltip({
   const formattedDate = format(parseISO(date), "EEEE, MMMM d, yyyy");
   const dotColor = CROWD_COLORS[crowdLevel] ?? CROWD_COLORS.unknown;
   const label = CROWD_LABELS[crowdLevel] ?? CROWD_LABELS.unknown;
+
+  // Monthly climate for this date
+  const month = getMonth(parseISO(date)) + 1; // 1-indexed
+  const climate = MONTHLY_CLIMATE[month];
 
   return (
     <div
@@ -43,6 +48,14 @@ export default function HeatmapTooltip({
           {label}
         </span>
       </div>
+      {climate && (
+        <div className="mt-1.5 flex items-center gap-1.5 border-t border-slate-200 dark:border-slate-700 pt-1.5">
+          <Thermometer className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Typical: {climate.highF}°/{climate.lowF}°F, {climate.conditions[0]}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
