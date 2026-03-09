@@ -44,6 +44,34 @@ export interface CampsiteAvailability {
   percentBooked: number;
 }
 
+// --- Calendar redesign types ---
+
+export interface DateRange {
+  startDate: string; // ISO date YYYY-MM-DD
+  endDate: string; // ISO date YYYY-MM-DD
+}
+
+export interface YearScoreData {
+  /** date → averaged busyness score across all zones (0-10) */
+  dailyAverages: Record<string, number>;
+  /** date → per-zone scores: { "yosemite-valley": 7.2, ... } */
+  dailyByZone: Record<string, Record<string, number>>;
+}
+
+export interface AppState {
+  selectedRange: DateRange | null;
+  zones: ParkZone[];
+  yearScores: YearScoreData | null;
+  rangeWeather: DailyForecast[];
+  rangeCampsites: CampsiteAvailability[];
+  alerts: ParkAlert[];
+  isLoading: boolean;
+  error: string | null;
+  currentYear: number;
+}
+
+// --- Legacy types (kept for API route compatibility) ---
+
 export interface ZoneWeekData {
   zone: ParkZone;
   dailyWeather: DailyForecast[];
@@ -53,19 +81,9 @@ export interface ZoneWeekData {
 }
 
 export interface WeekSelection {
-  startDate: string; // ISO date YYYY-MM-DD (Monday)
-  endDate: string; // ISO date YYYY-MM-DD (Sunday)
-  label: string; // e.g., "Mar 9 - Mar 15, 2026"
-}
-
-export interface AppState {
-  selectedWeek: WeekSelection | null;
-  activeZoneId: string | null;
-  zones: ParkZone[];
-  zoneData: Record<string, ZoneWeekData>;
-  alerts: ParkAlert[];
-  isLoading: boolean;
-  error: string | null;
+  startDate: string;
+  endDate: string;
+  label: string;
 }
 
 // API response types

@@ -1,41 +1,62 @@
 "use client";
 
 import React, { createContext, useContext, useReducer, useCallback } from "react";
-import { AppState, WeekSelection, ZoneWeekData } from "./types";
+import {
+  AppState,
+  DateRange,
+  YearScoreData,
+  DailyForecast,
+  CampsiteAvailability,
+  ParkAlert,
+} from "./types";
 import { PARK_ZONES } from "./constants";
 
 type Action =
-  | { type: "SET_WEEK"; payload: WeekSelection }
-  | { type: "SET_ACTIVE_ZONE"; payload: string | null }
-  | { type: "SET_ZONE_DATA"; payload: { zoneId: string; data: ZoneWeekData } }
+  | { type: "SET_RANGE"; payload: DateRange | null }
+  | { type: "SET_YEAR_SCORES"; payload: YearScoreData }
+  | { type: "SET_RANGE_WEATHER"; payload: DailyForecast[] }
+  | { type: "SET_RANGE_CAMPSITES"; payload: CampsiteAvailability[] }
+  | { type: "SET_YEAR"; payload: number }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
-  | { type: "SET_ALERTS"; payload: AppState["alerts"] }
-  | { type: "SET_ALL_ZONE_DATA"; payload: Record<string, ZoneWeekData> };
+  | { type: "SET_ALERTS"; payload: ParkAlert[] };
 
 const initialState: AppState = {
-  selectedWeek: null,
-  activeZoneId: null,
+  selectedRange: null,
   zones: PARK_ZONES,
-  zoneData: {},
+  yearScores: null,
+  rangeWeather: [],
+  rangeCampsites: [],
   alerts: [],
   isLoading: false,
   error: null,
+  currentYear: new Date().getFullYear(),
 };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
-    case "SET_WEEK":
-      return { ...state, selectedWeek: action.payload, zoneData: {}, activeZoneId: null };
-    case "SET_ACTIVE_ZONE":
-      return { ...state, activeZoneId: action.payload };
-    case "SET_ZONE_DATA":
+    case "SET_RANGE":
       return {
         ...state,
-        zoneData: { ...state.zoneData, [action.payload.zoneId]: action.payload.data },
+        selectedRange: action.payload,
+        rangeWeather: [],
+        rangeCampsites: [],
       };
-    case "SET_ALL_ZONE_DATA":
-      return { ...state, zoneData: action.payload };
+    case "SET_YEAR_SCORES":
+      return { ...state, yearScores: action.payload };
+    case "SET_RANGE_WEATHER":
+      return { ...state, rangeWeather: action.payload };
+    case "SET_RANGE_CAMPSITES":
+      return { ...state, rangeCampsites: action.payload };
+    case "SET_YEAR":
+      return {
+        ...state,
+        currentYear: action.payload,
+        yearScores: null,
+        selectedRange: null,
+        rangeWeather: [],
+        rangeCampsites: [],
+      };
     case "SET_LOADING":
       return { ...state, isLoading: action.payload };
     case "SET_ERROR":
@@ -49,13 +70,14 @@ function reducer(state: AppState, action: Action): AppState {
 
 interface AppContextType {
   state: AppState;
-  setWeek: (week: WeekSelection) => void;
-  setActiveZone: (zoneId: string | null) => void;
-  setZoneData: (zoneId: string, data: ZoneWeekData) => void;
-  setAllZoneData: (data: Record<string, ZoneWeekData>) => void;
+  setRange: (range: DateRange | null) => void;
+  setYearScores: (scores: YearScoreData) => void;
+  setRangeWeather: (weather: DailyForecast[]) => void;
+  setRangeCampsites: (campsites: CampsiteAvailability[]) => void;
+  setYear: (year: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setAlerts: (alerts: AppState["alerts"]) => void;
+  setAlerts: (alerts: ParkAlert[]) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -63,20 +85,24 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const setWeek = useCallback((week: WeekSelection) => {
-    dispatch({ type: "SET_WEEK", payload: week });
+  const setRange = useCallback((range: DateRange | null) => {
+    dispatch({ type: "SET_RANGE", payload: range });
   }, []);
 
-  const setActiveZone = useCallback((zoneId: string | null) => {
-    dispatch({ type: "SET_ACTIVE_ZONE", payload: zoneId });
+  const setYearScores = useCallback((scores: YearScoreData) => {
+    dispatch({ type: "SET_YEAR_SCORES", payload: scores });
   }, []);
 
-  const setZoneData = useCallback((zoneId: string, data: ZoneWeekData) => {
-    dispatch({ type: "SET_ZONE_DATA", payload: { zoneId, data } });
+  const setRangeWeather = useCallback((weather: DailyForecast[]) => {
+    dispatch({ type: "SET_RANGE_WEATHER", payload: weather });
   }, []);
 
-  const setAllZoneData = useCallback((data: Record<string, ZoneWeekData>) => {
-    dispatch({ type: "SET_ALL_ZONE_DATA", payload: data });
+  const setRangeCampsites = useCallback((campsites: CampsiteAvailability[]) => {
+    dispatch({ type: "SET_RANGE_CAMPSITES", payload: campsites });
+  }, []);
+
+  const setYear = useCallback((year: number) => {
+    dispatch({ type: "SET_YEAR", payload: year });
   }, []);
 
   const setLoading = useCallback((loading: boolean) => {
@@ -87,7 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "SET_ERROR", payload: error });
   }, []);
 
-  const setAlerts = useCallback((alerts: AppState["alerts"]) => {
+  const setAlerts = useCallback((alerts: ParkAlert[]) => {
     dispatch({ type: "SET_ALERTS", payload: alerts });
   }, []);
 
@@ -95,10 +121,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider
       value={{
         state,
-        setWeek,
-        setActiveZone,
-        setZoneData,
-        setAllZoneData,
+        setRange,
+        setYearScores,
+        setRangeWeather,
+        setRangeCampsites,
+        setYear,
         setLoading,
         setError,
         setAlerts,

@@ -1,203 +1,200 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useApp } from "@/lib/context";
 import Header from "@/components/Header/Header";
-import WeekPicker from "@/components/DatePicker/WeekPicker";
-import YosemiteMap from "@/components/Map/YosemiteMap";
-import DetailPanel from "@/components/DetailPanel/DetailPanel";
-import { fetchAllZoneData } from "@/lib/api";
+import CalendarHeatmap from "@/components/Calendar/CalendarHeatmap";
+import HeatmapLegend from "@/components/Calendar/HeatmapLegend";
+import YearSelector from "@/components/Calendar/YearSelector";
+import RangePanel from "@/components/RangePanel/RangePanel";
+import { computeYearScores } from "@/lib/utils/yearScores";
 import { fetchParkAlerts } from "@/lib/api/nps";
-import { PARK_ZONES } from "@/lib/constants";
-import { Mountain, TreePine, Loader2 } from "lucide-react";
+import { fetchWeekWeather } from "@/lib/api/weather";
+import { YOSEMITE_CENTER } from "@/lib/constants";
+import { DateRange } from "@/lib/types";
+import { Mountain, TreePine } from "lucide-react";
 
 export default function Home() {
   const {
     state,
-    setAllZoneData,
-    setLoading,
-    setError,
+    setRange,
+    setYearScores,
+    setRangeWeather,
+    setYear,
     setAlerts,
+    setError,
   } = useApp();
 
-  const { selectedWeek, isLoading, error } = state;
-  const fetchedWeekRef = useRef<string | null>(null);
+  const { selectedRange, yearScores, currentYear, rangeWeather, rangeCampsites } =
+    state;
+
+  // Compute year scores on mount and when year changes
+  useEffect(() => {
+    const scores = computeYearScores(currentYear);
+    setYearScores(scores);
+  }, [currentYear, setYearScores]);
 
   // Fetch alerts on mount
   useEffect(() => {
     let cancelled = false;
-
     async function loadAlerts() {
       try {
         const alerts = await fetchParkAlerts();
-        if (!cancelled) {
-          setAlerts(alerts);
-        }
+        if (!cancelled) setAlerts(alerts);
       } catch (err) {
         console.error("Failed to fetch park alerts:", err);
       }
     }
-
     loadAlerts();
-
     return () => {
       cancelled = true;
     };
   }, [setAlerts]);
 
-  // Fetch zone data when selectedWeek changes
+  // Fetch weather when range is selected (if range is within forecast window)
   useEffect(() => {
-    if (!selectedWeek) return;
-
-    const weekKey = selectedWeek.startDate;
-    if (fetchedWeekRef.current === weekKey) return;
+    if (!selectedRange) return;
 
     let cancelled = false;
 
-    async function loadZoneData() {
-      setLoading(true);
-      setError(null);
-
+    async function loadWeather() {
       try {
-        const allData = await fetchAllZoneData(PARK_ZONES, selectedWeek!.startDate);
-        if (!cancelled) {
-          setAllZoneData(allData);
-          fetchedWeekRef.current = weekKey;
-        }
+        const weather = await fetchWeekWeather(
+          YOSEMITE_CENTER.latitude,
+          YOSEMITE_CENTER.longitude,
+          selectedRange!.startDate
+        );
+        if (!cancelled) setRangeWeather(weather);
       } catch (err) {
-        if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to load park data";
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        console.error("Failed to fetch weather:", err);
       }
     }
 
-    loadZoneData();
-
+    loadWeather();
     return () => {
       cancelled = true;
     };
-  }, [selectedWeek, setAllZoneData, setLoading, setError]);
+  }, [selectedRange, setRangeWeather]);
+
+  const handleRangeSelect = useMemo(
+    () => (range: DateRange) => {
+      setRange(range);
+    },
+    [setRange]
+  );
+
+  const handleYearChange = useMemo(
+    () => (year: number) => {
+      setYear(year);
+    },
+    [setYear]
+  );
+
+  // Don't render the heatmap until scores are computed
+  if (!yearScores) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center pt-14">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm">Computing park data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      {/* Week picker - positioned below fixed header */}
-      <div className="pt-14">
-        <WeekPicker />
-      </div>
-
-      {/* Main content area */}
-      <main className="flex-1 relative overflow-hidden">
-        {/* Map layer */}
-        <YosemiteMap />
-
-        {/* Detail panel */}
-        <DetailPanel />
-
-        {/* Loading overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm fade-in">
-            <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white/90 dark:bg-slate-800/90 shadow-xl">
-              <div className="relative">
-                <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  Loading park data...
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Fetching weather, crowds, and campsite availability
-                </p>
-              </div>
+      <main className="flex-1 flex flex-col pt-14">
+        <div className="flex flex-col px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          {/* Year selector */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Yosemite Crowd Calendar
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Click two dates to select your visit window
+              </p>
             </div>
+            <YearSelector year={currentYear} onYearChange={handleYearChange} />
           </div>
-        )}
 
-        {/* Error banner */}
-        {error && !isLoading && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 max-w-md w-full mx-4 fade-in">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 shadow-lg">
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-800/50">
-                <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                  !
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  Something went wrong
-                </p>
-                <p className="text-xs text-red-600 dark:text-red-400 truncate">
-                  {error}
-                </p>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="flex-shrink-0 text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
-                aria-label="Dismiss error"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+          {/* Heatmap */}
+          <CalendarHeatmap
+            yearScores={yearScores}
+            selectedRange={selectedRange}
+            onRangeSelect={handleRangeSelect}
+            year={currentYear}
+          />
+
+          {/* Legend */}
+          <div className="mt-4">
+            <HeatmapLegend />
           </div>
-        )}
 
-        {/* Welcome overlay when no week is selected */}
-        {!selectedWeek && !isLoading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="flex flex-col items-center gap-5 p-10 rounded-3xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md shadow-xl max-w-sm mx-4 text-center pointer-events-auto fade-in">
-              <div className="flex items-center gap-2">
-                <Mountain className="w-8 h-8 text-emerald-600" />
-                <TreePine className="w-6 h-6 text-emerald-700" />
+          {/* Range detail section (below calendar) */}
+          {selectedRange && yearScores && (
+            <RangePanel
+              selectedRange={selectedRange}
+              yearScores={yearScores}
+              weather={rangeWeather}
+              campsites={rangeCampsites}
+              onClose={() => setRange(null)}
+            />
+          )}
+
+          {/* Welcome message when no range selected */}
+          {!selectedRange && (
+            <div className="flex flex-col items-center gap-4 mt-12 mb-8 fade-in">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <Mountain className="w-8 h-8" />
+                <TreePine className="w-6 h-6" />
               </div>
-              <div>
+              <div className="text-center max-w-md">
                 <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                  Welcome to ParkPro
+                  Plan Your Yosemite Visit
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                  Select a week above to see crowd predictions, weather
-                  forecasts, and campsite availability across Yosemite.
+                  The calendar above shows predicted crowd levels throughout the
+                  year. Green days are quieter, red days are busier. Click a
+                  start date and an end date to see detailed zone-by-zone
+                  breakdown and trip recommendations.
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 10l7-7m0 0l7 7m-7-7v18"
-                  />
-                </svg>
-                <span>Pick a week to get started</span>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
+
+      {/* Error banner */}
+      {state.error && (
+        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4 fade-in">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 shadow-lg">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                Something went wrong
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-400 truncate">
+                {state.error}
+              </p>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-400 hover:text-red-600 transition-colors"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

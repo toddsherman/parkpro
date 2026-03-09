@@ -14,8 +14,6 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "<rootDir>/src/__tests__/__mocks__/styleMock.ts",
-    "^mapbox-gl$": "<rootDir>/src/__tests__/__mocks__/mapbox-gl.ts",
-    "^react-map-gl/mapbox$": "<rootDir>/src/__tests__/__mocks__/react-map-gl.tsx",
     "^next/server$": "<rootDir>/src/__tests__/__mocks__/next-server.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
