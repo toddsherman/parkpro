@@ -61,6 +61,36 @@ describe("scoring utilities", () => {
       const score2 = calculateBusynessScore(date, "glacier-point");
       expect(score1).toEqual(score2);
     });
+
+    it("boosts scores on federal holidays", () => {
+      // Use a mid-popularity zone so scores don't clamp to 10
+      // 2026-09-07 is Labor Day (Monday); 2026-09-14 is a regular Monday
+      const laborDay = calculateBusynessScore(
+        new Date(2026, 8, 7), // Sep 7, local time
+        "tuolumne-meadows"
+      );
+      const regularMonday = calculateBusynessScore(
+        new Date(2026, 8, 14), // Sep 14, local time
+        "tuolumne-meadows"
+      );
+      expect(laborDay).toBeGreaterThan(regularMonday);
+    });
+
+    it("produces realistic NPS-calibrated ranges", () => {
+      // Winter weekday at remote zone should be low (<3.5)
+      const winterQuiet = calculateBusynessScore(
+        new Date("2026-01-06"), // Tuesday
+        "hetch-hetchy"
+      );
+      expect(winterQuiet).toBeLessThan(3.5);
+
+      // Peak summer weekend at Valley should be high (>6.5)
+      const summerPeak = calculateBusynessScore(
+        new Date("2026-07-11"), // Saturday
+        "yosemite-valley"
+      );
+      expect(summerPeak).toBeGreaterThanOrEqual(6.5);
+    });
   });
 
   describe("scoreToCrowdLevel", () => {

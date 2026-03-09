@@ -188,32 +188,64 @@ export const CROWD_LABELS: Record<string, string> = {
   unknown: "Data Unavailable",
 };
 
-// Month-based historical busyness estimates (1-10 scale)
-// Based on publicly available NPS visitation statistics
+// ---------------------------------------------------------------------------
+// NPS Visitation Data
+// Source: NPS Stats REST API (irmaservices.nps.gov/Stats/v1)
+// Data: Monthly recreation visits for Yosemite NP (YOSE), 2015–2019 & 2022–2024
+//       (2020–2021 excluded due to COVID-19 closures/reservation systems)
+//       2023-Mar excluded (anomalous closure, only 25k visitors)
+// See: https://www.nps.gov/yose/planyourvisit/visitation.htm
+//      https://irma.nps.gov/Stats/Reports/Park/YOSE
+// ---------------------------------------------------------------------------
+
+/** Average monthly recreation visitors (rounded), computed from NPS data. */
+export const NPS_MONTHLY_VISITORS: Record<number, number> = {
+  1: 125800, // Jan avg: 128k,140k,120k,129k,117k,137k,107k,128k
+  2: 138695, // Feb avg: 135k,202k,119k,143k,112k,170k,107k,121k
+  3: 190354, // Mar avg: 195k,287k,167k,171k,174k,193k,147k (excl 2023)
+  4: 273771, // Apr avg: 281k,305k,303k,278k,297k,286k,206k,234k
+  5: 403614, // May avg: 408k,457k,472k,386k,393k,381k,322k,410k
+  6: 547330, // Jun avg: 545k,704k,566k,544k,497k,470k,488k,566k
+  7: 601655, // Jul avg: 626k,781k,633k,504k,717k,397k,580k,574k (peak)
+  8: 593663, // Aug avg: 637k,692k,616k,442k,703k,518k,593k,547k
+  9: 540289, // Sep avg: 527k,598k,566k,524k,585k,424k,559k,537k
+  10: 426580, // Oct avg: 357k,483k,430k,361k,449k,382k,489k,462k
+  11: 214323, // Nov avg: 169k,219k,218k,216k,231k,179k,252k,231k
+  12: 168934, // Dec avg: 140k,161k,127k,311k,149k,131k,168k,164k
+};
+
+/**
+ * Monthly busyness scores (0-10 scale) derived from NPS visitor counts.
+ * Computed as: (monthAvg / peakMonthAvg) × 10, where July is the peak.
+ */
 export const MONTHLY_BUSYNESS: Record<number, number> = {
-  1: 2, // January
-  2: 2, // February
-  3: 3, // March
-  4: 5, // April
-  5: 7, // May
-  6: 9, // June
-  7: 10, // July
-  8: 9, // August
-  9: 7, // September
-  10: 5, // October
-  11: 3, // November
-  12: 2, // December
+  1: 2.1, // Jan – 125,800 visitors (quietest month)
+  2: 2.3, // Feb – 138,695 visitors
+  3: 3.2, // Mar – 190,354 visitors (spring begins)
+  4: 4.5, // Apr – 273,771 visitors
+  5: 6.7, // May – 403,614 visitors (peak season starts)
+  6: 9.1, // Jun – 547,330 visitors
+  7: 10.0, // Jul – 601,655 visitors (peak month)
+  8: 9.9, // Aug – 593,663 visitors (near-peak)
+  9: 9.0, // Sep – 540,289 visitors (fall crowds)
+  10: 7.1, // Oct – 426,580 visitors (fall foliage)
+  11: 3.6, // Nov – 214,323 visitors
+  12: 2.8, // Dec – 168,934 visitors
 };
 
 // Day-of-week multipliers (relative busyness)
+// Based on NPS qualitative data: weekends see significantly higher visitation
+// with parking typically full by 8am on summer weekends; weekdays maintain
+// available parking and stable traffic flow.
+// Source: https://www.nps.gov/yose/planyourvisit/traffic.htm
 export const DAY_OF_WEEK_MULTIPLIER: Record<number, number> = {
-  0: 1.3, // Sunday
-  1: 0.6, // Monday
+  0: 1.3, // Sunday (weekend departure day, still busy)
+  1: 0.6, // Monday (quietest weekday)
   2: 0.6, // Tuesday
   3: 0.7, // Wednesday
-  4: 0.8, // Thursday
-  5: 1.1, // Friday
-  6: 1.4, // Saturday
+  4: 0.8, // Thursday (some early arrivals)
+  5: 1.1, // Friday (weekend arrivals begin)
+  6: 1.4, // Saturday (busiest day of week)
 };
 
 // Monthly climate averages for Yosemite (approximate historic data)
@@ -235,16 +267,24 @@ export const MONTHLY_CLIMATE: Record<
   12: { highF: 48, lowF: 26, conditions: ["Snow", "Cloudy", "Rain", "Partly Cloudy"], precipChance: 45 },
 };
 
-// Zone-specific busyness multipliers (some areas attract more visitors)
+// Zone-specific busyness multipliers (relative crowding factor, 1.0 = average)
+// Calibrated from NPS Visitor Studies:
+//   - Summer 2009 study: 70% of visitor groups visited Yosemite Valley
+//   - Winter 2008 study: Valley 59%, Glacier Pt 55%, Wawona 43%,
+//     Mariposa Grove 19%, High Sierra 11%, Tuolumne 7%, Hetch Hetchy 5%
+// Sources:
+//   https://www.nps.gov/yose/learn/nature/upload/Visitor-Use-Summer-2009-Study.pdf
+//   https://www.nps.gov/yose/learn/nature/upload/vswinter2008.pdf
+//   https://www.nps.gov/yose/planyourvisit/traffic.htm (entrance delays)
 export const ZONE_POPULARITY: Record<string, number> = {
-  "yosemite-valley": 1.5,
-  "mariposa-grove": 1.2,
-  "glacier-point": 1.3,
-  "tuolumne-meadows": 0.9,
-  "hetch-hetchy": 0.5,
-  "wawona": 0.7,
-  "bridalveil-fall": 1.4,
-  "half-dome-village": 1.4,
-  "el-capitan": 1.1,
-  "tioga-pass": 0.6,
+  "yosemite-valley": 1.5, // ~70% of summer visitors; South Entrance 2hr waits
+  "bridalveil-fall": 1.4, // Valley entrance attraction; first stop for most visitors
+  "half-dome-village": 1.4, // Major Valley hub; Mist Trail/Half Dome access
+  "glacier-point": 1.3, // 55% in winter; summer road access makes it very popular
+  "el-capitan": 1.1, // Valley viewpoint; popular but spread-out viewing area
+  "mariposa-grove": 1.0, // ~19–30% of visitors; shuttle system manages flow
+  "tuolumne-meadows": 0.8, // ~7% winter (closed), ~15–20% summer; seasonal access
+  "wawona": 0.7, // ~43% in winter (base camp), ~15–20% summer
+  "tioga-pass": 0.5, // Remote eastern entrance; seasonal closure Nov–May
+  "hetch-hetchy": 0.4, // ~5% of visitors; most remote, limited hours
 };
