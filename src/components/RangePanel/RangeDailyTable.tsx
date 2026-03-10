@@ -52,7 +52,7 @@ export default function RangeDailyTable({
       const level = score != null ? scoreToCrowdLevel(score) : "unknown";
       const forecast = weatherMap.get(d);
       const weatherInfo = forecast
-        ? `${forecast.condition} ${forecast.tempHighF}/${forecast.tempLowF}\u00B0F`
+        ? `${forecast.tempHighF}°/${forecast.tempLowF}°F`
         : null;
       const daylight = computeDaylight(d);
 
