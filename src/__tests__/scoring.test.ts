@@ -149,6 +149,31 @@ describe("scoring utilities", () => {
       expect(winterGP).toBeLessThan(summerGP * 0.3);
     });
 
+    it("smooths month-boundary transitions (no overnight cliff)", () => {
+      // Use a mid-popularity zone so scores don't clamp at 10
+      const oct31 = calculateBusynessScore(
+        new Date(2026, 9, 31), // Oct 31
+        "hetch-hetchy"
+      );
+      const nov1 = calculateBusynessScore(
+        new Date(2026, 10, 1), // Nov 1 (Sunday)
+        "hetch-hetchy"
+      );
+      // With interpolation the gap should be < 1.5 points (not the 3.5-point cliff)
+      expect(Math.abs(oct31 - nov1)).toBeLessThan(1.5);
+    });
+
+    it("preserves midpoint values (15th of month)", () => {
+      // Jul 15 sits on the midpoint anchor — should be close to MONTHLY_BUSYNESS[7] = 10.0
+      const jul15 = calculateBusynessScore(
+        new Date(2026, 6, 15), // Jul 15
+        "yosemite-valley"
+      );
+      // Valley multiplier ~1.15, dayOfWeek varies, but base should be ~10.0
+      // Just check it's very high (peak month, popular zone)
+      expect(jul15).toBeGreaterThanOrEqual(8);
+    });
+
     it("produces realistic NPS-calibrated ranges", () => {
       // Winter weekday at remote zone should be low (<3.5)
       const winterQuiet = calculateBusynessScore(

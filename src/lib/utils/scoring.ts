@@ -124,6 +124,36 @@ function getRoadClosureMultiplier(date: Date, zoneId: string): number {
   return 1.0;
 }
 
+// ---------------------------------------------------------------------------
+// Monthly Baseline Interpolation
+// NPS data is monthly totals — we don't know the within-month distribution.
+// Treating each month's value as anchored at the 15th and linearly
+// interpolating between adjacent midpoints creates smooth transitions
+// instead of artificial cliffs at month boundaries.
+// ---------------------------------------------------------------------------
+
+function getInterpolatedMonthBase(month: number, dayOfMonth: number): number {
+  const current = MONTHLY_BUSYNESS[month] ?? 5;
+  const midpoint = 15;
+
+  if (dayOfMonth <= midpoint) {
+    // First half of month: blend with previous month
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prev = MONTHLY_BUSYNESS[prevMonth] ?? 5;
+    const t = (dayOfMonth - 1) / (midpoint - 1); // 0 at day 1, 1 at day 15
+    const boundary = (prev + current) / 2;
+    return boundary + (current - boundary) * t;
+  } else {
+    // Second half of month: blend with next month
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const next = MONTHLY_BUSYNESS[nextMonth] ?? 5;
+    const daysInMonth = new Date(2026, month, 0).getDate();
+    const t = (dayOfMonth - midpoint) / (daysInMonth - midpoint); // 0 at day 15, 1 at last day
+    const boundary = (current + next) / 2;
+    return current + (boundary - current) * t;
+  }
+}
+
 /**
  * Calculate a busyness score (0-10) for a specific date and zone.
  *
@@ -143,7 +173,7 @@ export function calculateBusynessScore(
   const month = date.getMonth() + 1;
   const dayOfWeek = date.getDay();
 
-  const monthBase = MONTHLY_BUSYNESS[month] ?? 5;
+  const monthBase = getInterpolatedMonthBase(month, date.getDate());
   const dayMultiplier = DAY_OF_WEEK_MULTIPLIER[dayOfWeek] ?? 1;
   const zoneMultiplier = ZONE_POPULARITY[zoneId] ?? 1;
   const holidayMultiplier = getHolidayMultiplier(date);
