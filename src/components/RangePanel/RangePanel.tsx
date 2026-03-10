@@ -169,12 +169,16 @@ export default function RangePanel({
         </button>
       </div>
 
-      {/* Top row: Summary + Trip Tips side by side on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* 1. Summary Card */}
-        <RangeSummaryCard range={selectedRange} yearScores={yearScores} />
+      {/* Two-column layout: left stacks Summary + Rankings, right stacks Tips + Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column */}
+        <div className="space-y-6">
+          <RangeSummaryCard range={selectedRange} yearScores={yearScores} />
+          <ZoneRankings range={selectedRange} yearScores={yearScores} />
+        </div>
 
-        {/* 2. Trip Tips */}
+        {/* Right column */}
+        <div className="space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb className="w-4 h-4 text-amber-500" />
@@ -375,19 +379,13 @@ export default function RangePanel({
             )}
           </div>
         </div>
-      </div>
 
-      {/* Bottom row: Zone Rankings + Daily Table side by side on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 3. Zone Rankings */}
-        <ZoneRankings range={selectedRange} yearScores={yearScores} />
-
-        {/* 4. Daily Table */}
         <RangeDailyTable
           range={selectedRange}
           yearScores={yearScores}
           weather={weather}
         />
+        </div>
       </div>
     </section>
   );
