@@ -332,13 +332,13 @@ export default function RangePanel({
 
             {/* Crowd-level pro tips (moderate or high only) */}
             {tips.isBusy && (
-              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
-                <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/40">
+                <Clock className="w-4 h-4 text-sky-600 dark:text-sky-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                  <p className="text-xs font-medium text-sky-800 dark:text-sky-300 mb-0.5">
                     Beat the Rush
                   </p>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                  <p className="text-sm text-sky-700 dark:text-sky-400">
                     Entrance gates and popular trailhead parking lots fill up
                     fast. Aim to enter the park before 7 AM.
                   </p>
@@ -347,13 +347,13 @@ export default function RangePanel({
             )}
 
             {tips.valleyBusy && (
-              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
-                <Bike className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/40">
+                <Bike className="w-4 h-4 text-sky-600 dark:text-sky-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                  <p className="text-xs font-medium text-sky-800 dark:text-sky-300 mb-0.5">
                     Bring Bikes
                   </p>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                  <p className="text-sm text-sky-700 dark:text-sky-400">
                     Valley traffic can come to a standstill and free shuttles
                     get packed. Biking is the most efficient way to navigate the
                     valley floor.
@@ -363,13 +363,13 @@ export default function RangePanel({
             )}
 
             {tips.isBusy && (
-              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
-                <UtensilsCrossed className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/40">
+                <UtensilsCrossed className="w-4 h-4 text-sky-600 dark:text-sky-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                  <p className="text-xs font-medium text-sky-800 dark:text-sky-300 mb-0.5">
                     Pack Plenty of Provisions
                   </p>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                  <p className="text-sm text-sky-700 dark:text-sky-400">
                     Park restaurants and grocery stores have long lines during
                     busy periods. Bring a cooler with drinks and snacks to stay
                     fueled on the trails.
