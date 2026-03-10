@@ -2,11 +2,16 @@
 
 import React, { useMemo } from "react";
 import { format } from "date-fns";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Droplets } from "lucide-react";
 import { DateRange, YearScoreData } from "@/lib/types";
 import { getDatesBetween } from "@/lib/utils/dates";
 import { scoreToCrowdLevel } from "@/lib/utils/scoring";
-import { CROWD_COLORS, CROWD_LABELS } from "@/lib/constants";
+import {
+  CROWD_COLORS,
+  CROWD_LABELS,
+  MERCED_RIVER_MONTHLY_CFS,
+  WATERFALL_THRESHOLDS,
+} from "@/lib/constants";
 
 interface RangeSummaryCardProps {
   range: DateRange;
@@ -51,6 +56,23 @@ export default function RangeSummaryCard({
 
     return { avgScore, avgLevel, bestDay, busiestDay, levelCounts, validDays };
   }, [range, yearScores]);
+
+  // Waterfall condition based on historical Merced River streamflow
+  const waterfallCondition = useMemo(() => {
+    const dates = getDatesBetween(range.startDate, range.endDate);
+    if (dates.length === 0) return null;
+    const midDate = dates[Math.floor(dates.length / 2)];
+    const month = parseInt(midDate.split("-")[1], 10);
+    const cfs = MERCED_RIVER_MONTHLY_CFS[month] ?? 30;
+
+    if (cfs >= WATERFALL_THRESHOLDS.excellent)
+      return { label: "Excellent", cfs, color: "text-blue-600 dark:text-blue-400" };
+    if (cfs >= WATERFALL_THRESHOLDS.good)
+      return { label: "Good", cfs, color: "text-cyan-600 dark:text-cyan-400" };
+    if (cfs >= WATERFALL_THRESHOLDS.low)
+      return { label: "Low", cfs, color: "text-amber-600 dark:text-amber-400" };
+    return { label: "Dry / Trickle", cfs, color: "text-slate-500 dark:text-slate-400" };
+  }, [range]);
 
   const bgByLevel: Record<string, string> = {
     low: "bg-green-50 dark:bg-green-950/30",
@@ -177,6 +199,24 @@ export default function RangeSummaryCard({
               High: {summary.levelCounts.high}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Waterfall Conditions */}
+      {waterfallCondition && (
+        <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+          <div className="flex items-center gap-2">
+            <Droplets className={`w-4 h-4 ${waterfallCondition.color}`} />
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              Waterfall Conditions:
+            </span>
+            <span className={`text-xs font-semibold ${waterfallCondition.color}`}>
+              {waterfallCondition.label}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 ml-6">
+            Based on historical Merced River flow (~{waterfallCondition.cfs} CFS avg)
+          </p>
         </div>
       )}
     </div>

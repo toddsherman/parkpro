@@ -316,3 +316,88 @@ export const ZONE_POPULARITY: Record<string, number> = {
   "tioga-pass": 0.5, // Eastern entrance: 8.8% of traffic; seasonal closure Nov–May
   "hetch-hetchy": 0.4, // Only 1.8% of park traffic (38k vehicles vs 550k at South)
 };
+
+// ---------------------------------------------------------------------------
+// Firefall (Horsetail Fall) viewing window
+// Sunset illuminates Horsetail Fall on El Capitan, creating a "firefall" effect.
+// Peak window ~Feb 16–24 draws massive crowds to Yosemite Valley.
+// Source: NPS — nps.gov/yose/planyourvisit/horsetailfall.htm
+// ---------------------------------------------------------------------------
+export const FIREFALL_WINDOW = {
+  month: 2,
+  peakStart: 16,
+  peakEnd: 24,
+  seasonStart: 10,
+  seasonEnd: 28,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Seasonal road closures
+// Tioga Road (Hwy 120) and Glacier Point Road close in winter due to snow.
+// Dates are historical medians — actual dates vary by snowpack each year.
+// Sources:
+//   https://www.nps.gov/yose/planyourvisit/wroads.htm
+//   https://www.nps.gov/yose/planyourvisit/tiogaopen.htm
+//   https://www.monobasinresearch.org/data/tiogapass.php (opening dates since 1933)
+// ---------------------------------------------------------------------------
+export const SEASONAL_ROAD_CLOSURES: Array<{
+  id: string;
+  name: string;
+  typicalOpen: { month: number; day: number };
+  typicalClose: { month: number; day: number };
+  affectedZones: string[];
+  closedMultiplier: number;
+}> = [
+  {
+    id: "tioga-road",
+    name: "Tioga Road (Hwy 120)",
+    typicalOpen: { month: 5, day: 21 },
+    typicalClose: { month: 11, day: 3 },
+    affectedZones: ["tuolumne-meadows", "tioga-pass"],
+    closedMultiplier: 0.1,
+  },
+  {
+    id: "glacier-point-road",
+    name: "Glacier Point Road",
+    typicalOpen: { month: 5, day: 28 },
+    typicalClose: { month: 11, day: 1 },
+    affectedZones: ["glacier-point"],
+    closedMultiplier: 0.3,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Wildfire smoke risk season
+// July–October sees the highest risk of smoke from regional wildfires.
+// This is informational only — we cannot predict actual smoke events.
+// Source: NPS Air Quality — nps.gov/yose/learn/nature/air-quality.htm
+// ---------------------------------------------------------------------------
+export const SMOKE_RISK_MONTHS = [7, 8, 9, 10] as const;
+
+// ---------------------------------------------------------------------------
+// Merced River historical monthly streamflow (Yosemite Valley)
+// USGS gauge 11264500 — Merced River at Happy Isles Bridge
+// Values are approximate monthly mean discharge (cubic feet per second)
+// from long-term USGS records. Used as a proxy for waterfall conditions.
+// Source: https://waterdata.usgs.gov/nwis/monthly?site_no=11264500
+// ---------------------------------------------------------------------------
+export const MERCED_RIVER_MONTHLY_CFS: Record<number, number> = {
+  1: 30,
+  2: 35,
+  3: 60,
+  4: 200,
+  5: 600,
+  6: 500,
+  7: 120,
+  8: 40,
+  9: 25,
+  10: 25,
+  11: 30,
+  12: 30,
+};
+
+export const WATERFALL_THRESHOLDS = {
+  excellent: 300,
+  good: 100,
+  low: 30,
+} as const;

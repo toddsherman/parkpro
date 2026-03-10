@@ -14,7 +14,7 @@ import {
   isAfter,
 } from "date-fns";
 import { scoreToColor, EMPTY_COLOR } from "@/lib/utils/colorScale";
-import { MONTHLY_CLIMATE } from "@/lib/constants";
+import { MONTHLY_CLIMATE, SMOKE_RISK_MONTHS } from "@/lib/constants";
 import type { DateRange, YearScoreData } from "@/lib/types";
 import HeatmapTooltip from "./HeatmapTooltip";
 
@@ -264,10 +264,11 @@ export default function CalendarHeatmap({
 
           {/* Grid area */}
           <div className="flex-1">
-            {/* Month labels row (month name + temp) */}
+            {/* Month labels row (month name + temp + smoke risk) */}
             <div className="relative" style={{ height: cellSize + CELL_GAP + 20 }}>
               {monthLabels.map(({ col, label, month }) => {
                 const climate = MONTHLY_CLIMATE[month];
+                const isSmokeMonth = (SMOKE_RISK_MONTHS as readonly number[]).includes(month);
                 return (
                   <div
                     key={label}
@@ -280,6 +281,11 @@ export default function CalendarHeatmap({
                     {climate && (
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
                         {climate.highF}°/{climate.lowF}°
+                        {isSmokeMonth && (
+                          <span className="text-orange-400 dark:text-orange-500 ml-0.5" title="Wildfire smoke risk season">
+                            *
+                          </span>
+                        )}
                       </span>
                     )}
                   </div>

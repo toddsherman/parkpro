@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Info, X, BarChart3, MapPin, Calendar, Sun } from "lucide-react";
+import {
+  Info,
+  X,
+  BarChart3,
+  MapPin,
+  Calendar,
+  Sun,
+  Flame,
+  AlertTriangle,
+  Wind,
+  Droplets,
+  Sunrise,
+} from "lucide-react";
 
 export default function DataMethodology() {
   const [open, setOpen] = useState(false);
@@ -144,10 +156,10 @@ export default function DataMethodology() {
                 </h3>
               </div>
               <p className="leading-relaxed">
-                Each day&rsquo;s crowd score (0&ndash;10) combines four factors:
+                Each day&rsquo;s crowd score (0&ndash;10) combines six factors:
               </p>
               <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 font-mono text-xs text-slate-700 dark:text-slate-300">
-                score = monthBase &times; dayOfWeek &times; zonePopularity &times; holiday + variance
+                score = monthBase &times; dayOfWeek &times; zonePopularity &times; holiday &times; roadClosure + variance
               </div>
               <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600 dark:text-slate-300">
                 <li>
@@ -163,14 +175,169 @@ export default function DataMethodology() {
                   Yosemite Valley is 1.5&times;, Hetch Hetchy is 0.4&times;
                 </li>
                 <li>
-                  <strong>Holiday boost</strong> (1.0&ndash;1.4) &mdash;
-                  Memorial Day, July 4th, Labor Day peak at 1.4&times;
+                  <strong>Holiday / event boost</strong> (1.0&ndash;1.4) &mdash;
+                  Memorial Day, July 4th, Labor Day peak at 1.4&times;.
+                  Firefall season (Feb 10&ndash;28) also boosts scores.
+                </li>
+                <li>
+                  <strong>Road closure</strong> (0.1&ndash;1.0) &mdash;
+                  zones with closed access roads are scored near zero
                 </li>
                 <li>
                   <strong>Variance</strong> (&minus;0.25 to +0.25) &mdash;
                   deterministic noise for visual texture
                 </li>
               </ul>
+            </section>
+
+            {/* Firefall */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Flame className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                  Firefall (Horsetail Fall)
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Each February, sunset light illuminates Horsetail Fall on El
+                Capitan, creating the famed &ldquo;Firefall&rdquo; effect. The
+                peak viewing window (Feb 16&ndash;24) draws massive crowds and
+                receives a <strong>1.4&times; busyness multiplier</strong>; the
+                broader season (Feb 10&ndash;28) receives 1.2&times;. When
+                Firefall overlaps Presidents&rsquo; Day weekend, the higher
+                multiplier is used.
+              </p>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Source:{" "}
+                <a
+                  href="https://www.nps.gov/yose/planyourvisit/horsetailfall.htm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  NPS Horsetail Fall page
+                </a>
+              </p>
+            </section>
+
+            {/* Road Closures */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                  Seasonal Road Closures
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Two major roads close in winter due to snow:
+              </p>
+              <ul className="mt-1.5 space-y-1 list-disc list-inside text-slate-600 dark:text-slate-300">
+                <li>
+                  <strong>Tioga Road (Hwy 120)</strong> &mdash; typically closed
+                  early November through late May. Affected zones (Tuolumne
+                  Meadows, Tioga Pass) receive a <strong>0.1&times;</strong>{" "}
+                  busyness multiplier during closure.
+                </li>
+                <li>
+                  <strong>Glacier Point Road</strong> &mdash; typically closed
+                  early November through late May. Glacier Point receives a{" "}
+                  <strong>0.3&times;</strong> multiplier during closure.
+                </li>
+              </ul>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Closure dates are historical medians &mdash; actual dates vary
+                by snowpack each year.{" "}
+                <a
+                  href="https://www.nps.gov/yose/planyourvisit/wroads.htm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  NPS Winter Roads
+                </a>
+              </p>
+            </section>
+
+            {/* Wildfire Smoke Risk */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Wind className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                  Wildfire Smoke Risk
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                July through October is wildfire smoke season in the Sierra
+                Nevada. The calendar marks these months with a smoke risk
+                indicator. This is <strong>disclosure only</strong> &mdash; we
+                cannot predict actual smoke events. Check the{" "}
+                <a
+                  href="https://fire.airnow.gov/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  AirNow Fire &amp; Smoke Map
+                </a>{" "}
+                before your visit.
+              </p>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Source:{" "}
+                <a
+                  href="https://www.nps.gov/yose/learn/nature/air-quality.htm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  NPS Air Quality
+                </a>
+              </p>
+            </section>
+
+            {/* Waterfall Conditions */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Droplets className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                  Waterfall Conditions
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Waterfall condition estimates are based on historical monthly
+                streamflow data from USGS gauge 11264500 (Merced River at Happy
+                Isles Bridge). Flow categories: <strong>Excellent</strong>{" "}
+                (&ge;300 CFS, Apr&ndash;Jun peak), <strong>Good</strong>{" "}
+                (&ge;100 CFS), <strong>Low</strong> (&ge;30 CFS), and{" "}
+                <strong>Dry / Trickle</strong> (&lt;30 CFS, Sep&ndash;Feb).
+              </p>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Source:{" "}
+                <a
+                  href="https://waterdata.usgs.gov/nwis/monthly?site_no=11264500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  USGS Water Data
+                </a>
+              </p>
+            </section>
+
+            {/* Sunrise & Sunset */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Sunrise className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                  Sunrise &amp; Sunset
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Day length, sunrise, and sunset times are computed using a solar
+                declination model for 37.75&deg;N latitude (Yosemite Valley).
+                The model is accurate to approximately &pm;5 minutes. Results
+                account for DST transitions but do not include terrain
+                obstruction (e.g., mountains delaying visible sunrise).
+              </p>
             </section>
 
             {/* Weather Data */}
@@ -202,7 +369,7 @@ export default function DataMethodology() {
                 <li>
                   Scores are <strong>predictions based on historic patterns</strong>,
                   not real-time data. Actual conditions may vary due to
-                  road closures, weather events, or policy changes.
+                  weather events or policy changes.
                 </li>
                 <li>
                   Day-of-week multipliers are qualitative estimates based on NPS
@@ -213,12 +380,16 @@ export default function DataMethodology() {
                   systems artificially capped visitation.
                 </li>
                 <li>
-                  Zone popularity is static and does not account for seasonal
-                  road closures (e.g., Tioga Pass closed Nov&ndash;May).
+                  Road closure dates are historical medians &mdash; actual
+                  opening and closing dates vary by snowpack each year.
                 </li>
                 <li>
-                  Federal holiday detection covers 8 major holidays and spring
-                  break but does not include state holidays or special events.
+                  Federal holiday detection covers 8 major holidays, Firefall,
+                  and spring break but does not include state holidays.
+                </li>
+                <li>
+                  Waterfall conditions use monthly averages and do not reflect
+                  real-time streamflow or drought/flood conditions.
                 </li>
               </ul>
             </section>

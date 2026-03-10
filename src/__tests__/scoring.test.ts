@@ -76,6 +76,79 @@ describe("scoring utilities", () => {
       expect(laborDay).toBeGreaterThan(regularMonday);
     });
 
+    // --- Firefall multiplier tests ---
+    it("boosts scores during Firefall peak (Feb 16–24)", () => {
+      // Feb 20 is peak Firefall; Feb 6 is a regular Feb day
+      const firefallDay = calculateBusynessScore(
+        new Date(2026, 1, 20), // Feb 20
+        "yosemite-valley"
+      );
+      const regularFeb = calculateBusynessScore(
+        new Date(2026, 1, 6), // Feb 6
+        "yosemite-valley"
+      );
+      expect(firefallDay).toBeGreaterThan(regularFeb);
+    });
+
+    it("boosts scores during Firefall shoulder season (Feb 10–15 & 25–28)", () => {
+      const shoulderDay = calculateBusynessScore(
+        new Date(2026, 1, 12), // Feb 12
+        "yosemite-valley"
+      );
+      const regularFeb = calculateBusynessScore(
+        new Date(2026, 1, 5), // Feb 5
+        "yosemite-valley"
+      );
+      expect(shoulderDay).toBeGreaterThan(regularFeb);
+    });
+
+    // --- Road closure multiplier tests ---
+    it("dramatically reduces Tuolumne Meadows score in winter (road closed)", () => {
+      // January — Tioga Road closed, multiplier = 0.1
+      const winterScore = calculateBusynessScore(
+        new Date(2026, 0, 15), // Jan 15
+        "tuolumne-meadows"
+      );
+      expect(winterScore).toBeLessThan(1.0);
+    });
+
+    it("leaves Yosemite Valley unaffected by road closures", () => {
+      // Valley has no seasonal road closure
+      const winterValley = calculateBusynessScore(
+        new Date(2026, 0, 15), // Jan 15
+        "yosemite-valley"
+      );
+      const winterTuolumne = calculateBusynessScore(
+        new Date(2026, 0, 15), // Jan 15
+        "tuolumne-meadows"
+      );
+      expect(winterValley).toBeGreaterThan(winterTuolumne * 5);
+    });
+
+    it("scores Tuolumne Meadows much higher in summer when road is open", () => {
+      const summerScore = calculateBusynessScore(
+        new Date(2026, 6, 15), // Jul 15
+        "tuolumne-meadows"
+      );
+      const winterScore = calculateBusynessScore(
+        new Date(2026, 0, 15), // Jan 15
+        "tuolumne-meadows"
+      );
+      expect(summerScore).toBeGreaterThan(winterScore * 5);
+    });
+
+    it("reduces Glacier Point score in winter (road closed)", () => {
+      const winterGP = calculateBusynessScore(
+        new Date(2026, 0, 15), // Jan 15
+        "glacier-point"
+      );
+      const summerGP = calculateBusynessScore(
+        new Date(2026, 6, 15), // Jul 15
+        "glacier-point"
+      );
+      expect(winterGP).toBeLessThan(summerGP * 0.3);
+    });
+
     it("produces realistic NPS-calibrated ranges", () => {
       // Winter weekday at remote zone should be low (<3.5)
       const winterQuiet = calculateBusynessScore(

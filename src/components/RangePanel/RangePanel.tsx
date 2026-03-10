@@ -8,6 +8,9 @@ import {
   TrendingDown,
   TrendingUp,
   Lightbulb,
+  Flame,
+  AlertTriangle,
+  Wind,
 } from "lucide-react";
 import {
   DateRange,
@@ -17,7 +20,13 @@ import {
 } from "@/lib/types";
 import { formatDateRange, getDayCount, getDatesBetween } from "@/lib/utils/dates";
 import { scoreToCrowdLevel } from "@/lib/utils/scoring";
-import { PARK_ZONES, CROWD_COLORS } from "@/lib/constants";
+import {
+  PARK_ZONES,
+  CROWD_COLORS,
+  FIREFALL_WINDOW,
+  SEASONAL_ROAD_CLOSURES,
+  SMOKE_RISK_MONTHS,
+} from "@/lib/constants";
 import RangeSummaryCard from "./RangeSummaryCard";
 import ZoneRankings from "./ZoneRankings";
 import RangeDailyTable from "./RangeDailyTable";
@@ -89,6 +98,44 @@ export default function RangePanel({
 
     return { bestDays, worstDays, quietestZone, busiestZone };
   }, [selectedRange, yearScores]);
+
+  // Contextual alerts for the selected range
+  const rangeAlerts = useMemo(() => {
+    const dates = getDatesBetween(selectedRange.startDate, selectedRange.endDate);
+
+    // Firefall overlap
+    const hasFirefall = dates.some((d) => {
+      const [, m, day] = d.split("-").map(Number);
+      return m === FIREFALL_WINDOW.month && day >= FIREFALL_WINDOW.seasonStart && day <= FIREFALL_WINDOW.seasonEnd;
+    });
+
+    // Road closures
+    const closedRoads = new Set<string>();
+    for (const d of dates) {
+      const [, m, day] = d.split("-").map(Number);
+      for (const road of SEASONAL_ROAD_CLOSURES) {
+        const afterClose =
+          m > road.typicalClose.month ||
+          (m === road.typicalClose.month && day > road.typicalClose.day);
+        const beforeOpen =
+          m < road.typicalOpen.month ||
+          (m === road.typicalOpen.month && day < road.typicalOpen.day);
+        if (afterClose || beforeOpen) closedRoads.add(road.name);
+      }
+    }
+
+    // Smoke risk
+    const hasSmokeRisk = dates.some((d) => {
+      const m = parseInt(d.split("-")[1], 10);
+      return (SMOKE_RISK_MONTHS as readonly number[]).includes(m);
+    });
+
+    return {
+      hasFirefall,
+      closedRoads: Array.from(closedRoads),
+      hasSmokeRisk,
+    };
+  }, [selectedRange]);
 
   function formatDayShort(iso: string): string {
     return format(parseLocal(iso), "EEE, MMM d");
@@ -214,6 +261,63 @@ export default function RangePanel({
                 </div>
               )}
             </div>
+
+            {/* Contextual alerts */}
+            {rangeAlerts.hasFirefall && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/40">
+                <Flame className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-orange-800 dark:text-orange-300 mb-0.5">
+                    Firefall Season
+                  </p>
+                  <p className="text-sm text-orange-700 dark:text-orange-400">
+                    Horsetail Fall &ldquo;Firefall&rdquo; may be visible Feb
+                    10&ndash;28. Expect significantly higher crowds in Yosemite
+                    Valley, especially around sunset.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {rangeAlerts.closedRoads.length > 0 && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-300 mb-0.5">
+                    Seasonal Road Closures
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    Typically closed during your dates:{" "}
+                    {rangeAlerts.closedRoads.join(", ")}.
+                    Affected zones will have reduced accessibility.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {rangeAlerts.hasSmokeRisk && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                <Wind className="w-4 h-4 text-slate-500 dark:text-slate-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-0.5">
+                    Wildfire Smoke Risk
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    July&ndash;October sees elevated smoke risk in the Sierra
+                    Nevada. Check{" "}
+                    <a
+                      href="https://fire.airnow.gov/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-emerald-600 dark:hover:text-emerald-400"
+                    >
+                      AirNow Fire &amp; Smoke Map
+                    </a>{" "}
+                    before your visit.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

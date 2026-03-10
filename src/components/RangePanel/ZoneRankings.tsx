@@ -5,7 +5,7 @@ import { BarChart2 } from "lucide-react";
 import { DateRange, YearScoreData } from "@/lib/types";
 import { getDatesBetween } from "@/lib/utils/dates";
 import { scoreToCrowdLevel } from "@/lib/utils/scoring";
-import { PARK_ZONES, CROWD_COLORS } from "@/lib/constants";
+import { PARK_ZONES, CROWD_COLORS, SEASONAL_ROAD_CLOSURES } from "@/lib/constants";
 
 interface ZoneRankingsProps {
   range: DateRange;
@@ -17,6 +17,7 @@ interface RankedZone {
   name: string;
   avgScore: number;
   level: string;
+  roadClosed: boolean;
 }
 
 export default function ZoneRankings({
@@ -25,6 +26,23 @@ export default function ZoneRankings({
 }: ZoneRankingsProps) {
   const ranked = useMemo(() => {
     const dates = getDatesBetween(range.startDate, range.endDate);
+
+    // Determine which zones have road closures during any date in range
+    const closedZoneIds = new Set<string>();
+    for (const d of dates) {
+      const [, m, day] = d.split("-").map(Number);
+      for (const road of SEASONAL_ROAD_CLOSURES) {
+        const afterClose =
+          m > road.typicalClose.month ||
+          (m === road.typicalClose.month && day > road.typicalClose.day);
+        const beforeOpen =
+          m < road.typicalOpen.month ||
+          (m === road.typicalOpen.month && day < road.typicalOpen.day);
+        if (afterClose || beforeOpen) {
+          for (const z of road.affectedZones) closedZoneIds.add(z);
+        }
+      }
+    }
 
     const zoneScores: RankedZone[] = PARK_ZONES.map((zone) => {
       let total = 0;
@@ -45,6 +63,7 @@ export default function ZoneRankings({
         name: zone.name,
         avgScore,
         level: scoreToCrowdLevel(avgScore),
+        roadClosed: closedZoneIds.has(zone.id),
       };
     });
 
@@ -82,6 +101,11 @@ export default function ZoneRankings({
             {/* Zone name */}
             <span className="text-sm font-medium text-slate-800 dark:text-slate-200 min-w-0 truncate w-36 shrink-0">
               {zone.name}
+              {zone.roadClosed && (
+                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 align-middle" title="Access road typically closed during selected dates">
+                  Road closed
+                </span>
+              )}
             </span>
 
             {/* Score bar */}

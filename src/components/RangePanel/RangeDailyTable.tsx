@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { format } from "date-fns";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Sunrise, Sunset } from "lucide-react";
 import {
   DateRange,
   YearScoreData,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/types";
 import { getDatesBetween } from "@/lib/utils/dates";
 import { scoreToCrowdLevel } from "@/lib/utils/scoring";
+import { computeDaylight } from "@/lib/utils/daylight";
 import { CROWD_COLORS, CROWD_LABELS } from "@/lib/constants";
 
 interface RangeDailyTableProps {
@@ -27,6 +28,9 @@ interface DayRow {
   score: number | null;
   level: string;
   weatherInfo: string | null;
+  sunrise: string;
+  sunset: string;
+  dayLength: number;
 }
 
 export default function RangeDailyTable({
@@ -50,6 +54,7 @@ export default function RangeDailyTable({
       const weatherInfo = forecast
         ? `${forecast.condition} ${forecast.tempHighF}/${forecast.tempLowF}\u00B0F`
         : null;
+      const daylight = computeDaylight(d);
 
       return {
         dateStr: d,
@@ -58,6 +63,9 @@ export default function RangeDailyTable({
         score,
         level,
         weatherInfo,
+        sunrise: daylight.sunrise,
+        sunset: daylight.sunset,
+        dayLength: daylight.dayLengthHours,
       };
     });
   }, [range, yearScores, weather]);
@@ -91,6 +99,9 @@ export default function RangeDailyTable({
               </th>
               <th className="text-left px-3 py-2 font-medium text-slate-600 dark:text-slate-400">
                 Weather
+              </th>
+              <th className="text-left px-3 py-2 font-medium text-slate-600 dark:text-slate-400">
+                Daylight
               </th>
             </tr>
           </thead>
@@ -129,6 +140,14 @@ export default function RangeDailyTable({
                 <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
                   {row.weatherInfo ?? "\u2014"}
                 </td>
+                <td className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  <span title={`Sunrise: ${row.sunrise} / Sunset: ${row.sunset}`}>
+                    {row.dayLength}h
+                  </span>
+                  <span className="hidden lg:inline text-slate-400 dark:text-slate-500 ml-1">
+                    ({row.sunrise}&ndash;{row.sunset})
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -164,7 +183,7 @@ export default function RangeDailyTable({
               </span>
             </div>
 
-            {/* Bottom: Score + Weather */}
+            {/* Bottom: Score + Weather + Daylight */}
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>
                 Busyness:{" "}
@@ -177,6 +196,14 @@ export default function RangeDailyTable({
                 </span>
               </span>
               <span>{row.weatherInfo ?? "\u2014"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+              <Sunrise className="w-3 h-3" />
+              <span>{row.sunrise}</span>
+              <span className="mx-0.5">&ndash;</span>
+              <Sunset className="w-3 h-3" />
+              <span>{row.sunset}</span>
+              <span className="ml-1">({row.dayLength}h)</span>
             </div>
           </div>
         ))}
