@@ -11,6 +11,9 @@ import {
   Flame,
   AlertTriangle,
   Wind,
+  Clock,
+  Bike,
+  UtensilsCrossed,
 } from "lucide-react";
 import {
   DateRange,
@@ -96,7 +99,15 @@ export default function RangePanel({
     const quietestZone = zoneAvgs[0] ?? null;
     const busiestZone = zoneAvgs[zoneAvgs.length - 1] ?? null;
 
-    return { bestDays, worstDays, quietestZone, busiestZone };
+    // --- Crowd-level tips (show when moderate or high) ---
+    const overallTotal = dayScores.reduce((s, d) => s + d.score, 0);
+    const overallAvg = dayScores.length > 0 ? overallTotal / dayScores.length : 0;
+    const isBusy = scoreToCrowdLevel(overallAvg) !== "low";
+
+    const valleyZone = zoneAvgs.find((z) => z.id === "yosemite-valley");
+    const valleyBusy = valleyZone ? scoreToCrowdLevel(valleyZone.avg) !== "low" : false;
+
+    return { bestDays, worstDays, quietestZone, busiestZone, isBusy, valleyBusy };
   }, [selectedRange, yearScores]);
 
   // Contextual alerts for the selected range
@@ -314,6 +325,54 @@ export default function RangePanel({
                       AirNow Fire &amp; Smoke Map
                     </a>{" "}
                     before your visit.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Crowd-level pro tips (moderate or high only) */}
+            {tips.isBusy && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
+                <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                    Beat the Rush
+                  </p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    Entrance gates and popular trailhead parking lots fill up
+                    fast. Aim to enter the park before 7 AM.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {tips.valleyBusy && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
+                <Bike className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                    Bring Bikes
+                  </p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    Valley traffic can come to a standstill and free shuttles
+                    get packed. Biking is the most efficient way to navigate the
+                    valley floor.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {tips.isBusy && (
+              <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
+                <UtensilsCrossed className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 mb-0.5">
+                    Pack Plenty of Provisions
+                  </p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    Park restaurants and grocery stores have long lines during
+                    busy periods. Bring a cooler with drinks and snacks to stay
+                    fueled on the trails.
                   </p>
                 </div>
               </div>
