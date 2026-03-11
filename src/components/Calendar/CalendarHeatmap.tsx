@@ -14,6 +14,7 @@ import {
   isAfter,
 } from "date-fns";
 import { scoreToColor, EMPTY_COLOR } from "@/lib/utils/colorScale";
+import { getHolidayLabel } from "@/lib/utils/scoring";
 import { MONTHLY_CLIMATE, SMOKE_RISK_MONTHS } from "@/lib/constants";
 import type { DateRange, YearScoreData } from "@/lib/types";
 import HeatmapTooltip from "./HeatmapTooltip";
@@ -35,6 +36,7 @@ interface CellData {
   col: number; // week column index
   row: number; // 0 = Mon ... 6 = Sun
   score: number | undefined;
+  isHoliday: boolean; // has a holiday/event label
 }
 
 type SelectionPhase = "idle" | "selecting";
@@ -152,6 +154,7 @@ export default function CalendarHeatmap({
         col,
         row,
         score: yearScores.dailyAverages[dateStr],
+        isHoliday: getHolidayLabel(day) !== null,
       });
     }
 
@@ -314,7 +317,7 @@ export default function CalendarHeatmap({
                     tabIndex={0}
                     aria-label={`${format(cell.date, "MMM d, yyyy")}${hasScore ? ` — score ${cell.score!.toFixed(1)}` : ""}`}
                     className={[
-                      "absolute cursor-pointer rounded-sm transition-opacity",
+                      "absolute cursor-pointer rounded-sm transition-opacity flex items-center justify-center",
                       today
                         ? "ring-2 ring-slate-800 dark:ring-slate-200"
                         : "",
@@ -355,7 +358,19 @@ export default function CalendarHeatmap({
                         handleCellClick(cell.dateStr);
                       }
                     }}
-                  />
+                  >
+                    {cell.isHoliday && (
+                      <span
+                        className="leading-none text-white select-none"
+                        style={{
+                          fontSize: Math.max(7, cellSize * 0.55),
+                          textShadow: "0 0 2px rgba(0,0,0,0.5)",
+                        }}
+                      >
+                        ★
+                      </span>
+                    )}
+                  </div>
                 );
               })}
             </div>
