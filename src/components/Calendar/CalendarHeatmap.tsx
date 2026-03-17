@@ -47,7 +47,6 @@ const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAY_LABEL_WIDTH = 36;
 const CELL_GAP = 3;
 const MIN_CELL_SIZE = 10;
-const MAX_CELL_SIZE = 22;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -183,10 +182,10 @@ export default function CalendarHeatmap({
 
   // Dynamic cell sizing -------------------------------------------------------
   const cellSize = useMemo(() => {
-    if (containerWidth === 0) return MAX_CELL_SIZE; // initial render
+    if (containerWidth === 0) return MIN_CELL_SIZE; // initial render – will resize immediately
     const availableWidth = containerWidth - DAY_LABEL_WIDTH;
     const computed = Math.floor(availableWidth / totalCols) - CELL_GAP;
-    return Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, computed));
+    return Math.max(MIN_CELL_SIZE, computed);
   }, [containerWidth, totalCols]);
 
   // Preview range while selecting ---------------------------------------------
