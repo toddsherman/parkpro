@@ -366,15 +366,17 @@ export default function CalendarHeatmap({
                     }}
                   >
                     {cell.isFirefall ? (
-                      <span
-                        className="leading-none select-none"
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="black"
+                        className="select-none"
                         style={{
-                          fontSize: Math.max(6, cellSize * 0.45),
-                          filter: "drop-shadow(0 0 1px rgba(0,0,0,0.3))",
+                          width: Math.max(7, cellSize * 0.55),
+                          height: Math.max(7, cellSize * 0.55),
                         }}
                       >
-                        🔥
-                      </span>
+                        <path d="M12 23c-3.9 0-7-2.9-7-6.8 0-3.2 2.1-6.2 4.3-8.4.3-.3.8-.1.8.4 0 1.2.5 2.3 1.3 3 .1.1.3 0 .3-.2-.2-2.5.7-5.1 2.6-7 .3-.3.8-.1.8.3.3 3.1 2.5 5.5 4.2 7.6 1.1 1.3 1.7 3 1.7 4.6C21 20.1 17.9 23 12 23z" />
+                      </svg>
                     ) : cell.isHoliday ? (
                       <span
                         className="leading-none text-white select-none"
